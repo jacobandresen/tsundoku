@@ -1,0 +1,139 @@
+/**
+ * generate-icons.mjs
+ * Renders the Tsundoku SVG icon to PNG at every size iOS and the PWA
+ * manifest need.  Run with:  node scripts/generate-icons.mjs
+ */
+
+import sharp from 'sharp';
+import {writeFileSync, mkdirSync} from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
+
+const ROOT    = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const OUT_DIR = path.join(ROOT, 'public');
+mkdirSync(OUT_DIR, {recursive: true});
+
+// ── Icon SVG ──────────────────────────────────────────────────────────────────
+//
+// Ligne-claire Tintin aesthetic:
+//   • Red background (#E63329) — the brand colour
+//   • A pile of bold, offset book spines (white / yellow / blue)
+//   • Tiny rocket launching from the pile, slightly tilted
+//
+// All shapes are thick and simple so the icon reads clearly at 20 × 20 pt
+// (the smallest size iOS renders it).
+
+const SVG = /* xml */ `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+
+  <!-- ░ Background ░ -->
+  <rect width="512" height="512" fill="#E63329"/>
+
+  <!-- ░ Bookshelf shadow ░ -->
+  <rect x="68" y="432" width="376" height="18" rx="9" fill="#B8271F"/>
+
+  <!-- ░ Books (standing upright, slightly different heights, packed) ░
+       Each book: a coloured rectangle (spine) + a thin darker left edge.
+       Reading left→right: blue · white · yellow · white · blue          -->
+
+  <!-- Book 1 — dark blue, tallest -->
+  <rect x="76"  y="212" width="66" height="220" rx="6" fill="#1A3A6B"/>
+  <rect x="76"  y="212" width="10" height="220" rx="3" fill="#122B52"/>
+  <!-- horizontal lines as "pages" hint -->
+  <rect x="88"  y="260" width="42" height="3" rx="1" fill="rgba(255,255,255,0.15)"/>
+  <rect x="88"  y="280" width="42" height="3" rx="1" fill="rgba(255,255,255,0.15)"/>
+
+  <!-- Book 2 — white, shorter -->
+  <rect x="148" y="252" width="58" height="180" rx="6" fill="#F8F8F8"/>
+  <rect x="148" y="252" width="9"  height="180" rx="3" fill="#DDDDDD"/>
+  <rect x="159" y="295" width="36" height="3" rx="1" fill="rgba(0,0,0,0.1)"/>
+  <rect x="159" y="315" width="36" height="3" rx="1" fill="rgba(0,0,0,0.1)"/>
+
+  <!-- Book 3 — yellow, medium-tall -->
+  <rect x="212" y="228" width="72" height="204" rx="6" fill="#F5C518"/>
+  <rect x="212" y="228" width="11" height="204" rx="3" fill="#D4A800"/>
+  <rect x="225" y="275" width="46" height="4" rx="1" fill="rgba(0,0,0,0.12)"/>
+  <rect x="225" y="298" width="46" height="4" rx="1" fill="rgba(0,0,0,0.12)"/>
+
+  <!-- Book 4 — white, tallest of the right cluster -->
+  <rect x="290" y="218" width="62" height="214" rx="6" fill="#F8F8F8"/>
+  <rect x="290" y="218" width="9"  height="214" rx="3" fill="#DDDDDD"/>
+  <rect x="301" y="262" width="39" height="3" rx="1" fill="rgba(0,0,0,0.1)"/>
+  <rect x="301" y="282" width="39" height="3" rx="1" fill="rgba(0,0,0,0.1)"/>
+
+  <!-- Book 5 — dark blue, short -->
+  <rect x="358" y="268" width="78" height="164" rx="6" fill="#1A3A6B"/>
+  <rect x="358" y="268" width="11" height="164" rx="3" fill="#122B52"/>
+  <rect x="371" y="310" width="52" height="3" rx="1" fill="rgba(255,255,255,0.15)"/>
+  <rect x="371" y="330" width="52" height="3" rx="1" fill="rgba(255,255,255,0.15)"/>
+
+  <!-- ░ Rocket (launches from the yellow book, tilted ~15° left) ░ -->
+  <g transform="translate(248,40) rotate(-12, 40, 130)">
+
+    <!-- Flame — outermost, yellow -->
+    <path d="M18 218 C10 260 40 285 40 265 C40 285 70 260 62 218 Z"
+          fill="#F5C518"/>
+    <!-- Flame — mid, orange -->
+    <path d="M24 218 C18 250 40 272 40 258 C40 272 62 250 56 218 Z"
+          fill="#FF7B1C"/>
+    <!-- Flame — core, white -->
+    <path d="M30 218 C28 240 40 255 40 248 C40 255 52 240 50 218 Z"
+          fill="white" opacity="0.85"/>
+
+    <!-- Exhaust nozzle -->
+    <rect x="22" y="208" width="36" height="14" rx="4" fill="#CCCCCC"/>
+
+    <!-- Left fin -->
+    <path d="M16 170 L-8 210 L16 196 Z" fill="white"/>
+    <!-- Right fin -->
+    <path d="M64 170 L88 210 L64 196 Z" fill="white"/>
+
+    <!-- Body cylinder -->
+    <rect x="16" y="80" width="48" height="140" rx="4" fill="white"/>
+
+    <!-- Nose cone -->
+    <path d="M16 80 C16 80 12 40 40 10 C68 40 64 80 64 80 Z" fill="white"/>
+
+    <!-- Porthole -->
+    <circle cx="40" cy="135" r="17" fill="#1A3A6B"/>
+    <!-- Porthole shine -->
+    <circle cx="46" cy="129" r="6"  fill="rgba(255,255,255,0.35)"/>
+
+    <!-- Nose tip accent -->
+    <circle cx="40" cy="16"  r="5"  fill="#F5C518"/>
+
+  </g>
+
+</svg>`.trim();
+
+// ── Sizes to generate ─────────────────────────────────────────────────────────
+
+const SIZES = [
+  // Apple Touch Icon — shown on iPhone home screen
+  {size: 180, file: 'apple-touch-icon.png'},
+  // PWA manifest icons
+  {size: 192, file: 'icon-192.png'},
+  {size: 512, file: 'icon-512.png'},
+  // Favicon fallback (used by some browsers)
+  {size: 32,  file: 'favicon-32.png'},
+];
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+const svgBuffer = Buffer.from(SVG);
+
+for (const {size, file} of SIZES) {
+  const outPath = path.join(OUT_DIR, file);
+  await sharp(svgBuffer)
+    .resize(size, size)
+    .png()
+    .toFile(outPath);
+  console.log(`  ✓  ${file}  (${size}×${size})`);
+}
+
+// Also write the raw SVG so it can be used anywhere
+const svgOut = path.join(OUT_DIR, 'icon.svg');
+writeFileSync(svgOut, SVG);
+console.log(`  ✓  icon.svg`);
+
+console.log('\nDone. Icons written to client/public/');

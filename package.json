@@ -1,0 +1,16 @@
+{
+  "name": "tsundoku",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter client --filter server dev",
+    "build": "pnpm --filter client build",
+    "test": "pnpm --recursive test",
+    "test:all": "bash scripts/test-all.sh",
+    "test:all:fast": "bash scripts/test-all.sh --no-build"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
