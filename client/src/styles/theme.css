@@ -26,6 +26,7 @@ body {
   background: var(--grey);
   color: var(--text);
   min-height: 100dvh;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -362,6 +363,7 @@ body {
   max-width: 640px;
   max-height: 90dvh;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
   box-shadow: var(--shadow-lg);
   padding-bottom: env(safe-area-inset-bottom, 16px);
@@ -395,12 +397,17 @@ body {
 .form-row { display: flex; flex-direction: column; gap: 4px; }
 .form-row--inline { flex-direction: row; align-items: center; gap: 12px; }
 .form-row--half { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* Let grid children shrink: iOS date/number inputs default to min-width:auto
+   and would otherwise force the modal wider than the viewport. */
+.form-row--half > * { min-width: 0; }
 
 .form-label { font-size: 0.8rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
 .form-row--inline .form-label { min-width: 60px; }
 
 .form-input {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 10px 12px;
   border: 2px solid var(--border);
   border-radius: var(--radius);
