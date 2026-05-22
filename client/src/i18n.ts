@@ -47,6 +47,11 @@ export interface Strings {
   syncDisconnected: string;
   titleRequired: string;
   yearInvalid: string;
+  scanTitle: string;
+  scanning: string;
+  scanTapLine: string;
+  scanNoText: string;
+  scanError: string;
 }
 
 const en: Strings = {
@@ -93,6 +98,11 @@ const en: Strings = {
   syncDisconnected: 'Offline',
   titleRequired: 'Title is required',
   yearInvalid: 'Enter a valid year',
+  scanTitle: 'Scan title from cover',
+  scanning: 'Scanning…',
+  scanTapLine: 'Tap a line to use as the title',
+  scanNoText: 'No text found — try a clearer photo',
+  scanError: 'Scan failed — try again',
 };
 
 const da: Strings = {
@@ -139,6 +149,11 @@ const da: Strings = {
   syncDisconnected: 'Offline',
   titleRequired: 'Titel er påkrævet',
   yearInvalid: 'Angiv et gyldigt år',
+  scanTitle: 'Scan titel fra omslag',
+  scanning: 'Scanner…',
+  scanTapLine: 'Tryk på en linje for at bruge som titel',
+  scanNoText: 'Ingen tekst fundet — prøv et tydeligere foto',
+  scanError: 'Scanning mislykkedes — prøv igen',
 };
 
 const ja: Strings = {
@@ -185,6 +200,11 @@ const ja: Strings = {
   syncDisconnected: 'オフライン',
   titleRequired: 'タイトルは必須です',
   yearInvalid: '有効な年を入力してください',
+  scanTitle: '表紙からタイトルを読み取る',
+  scanning: 'スキャン中…',
+  scanTapLine: 'タイトルにする行をタップ',
+  scanNoText: 'テキストが見つかりません — 鮮明な写真でお試しください',
+  scanError: 'スキャンに失敗しました — もう一度お試しください',
 };
 
 const TRANSLATIONS: Record<Locale, Strings> = {en, da, ja};

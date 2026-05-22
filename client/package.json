@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node scripts/generate-icons.mjs && tsc && vite build",
+    "dev": "node scripts/fetch-tesseract.mjs && vite",
+    "build": "node scripts/generate-icons.mjs && node scripts/fetch-tesseract.mjs && tsc && vite build",
     "icons": "node scripts/generate-icons.mjs",
+    "fetch-ocr": "node scripts/fetch-tesseract.mjs",
     "preview": "vite preview",
     "test": "vitest run"
   },
@@ -14,6 +15,7 @@
     "nanoid": "^5.0.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tesseract.js": "^7.0.0",
     "tinybase": "^5.0.0"
   },
   "devDependencies": {

@@ -1,10 +1,11 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {nanoid} from 'nanoid';
 import {useLocale} from '../LocaleContext.tsx';
 import {getKindVerbs} from '../kindMeta.ts';
 import {ITEMS_TABLE} from '../store.ts';
 import type {AppStore, Item, ItemKind} from '../store.ts';
-import {deleteImage} from '../imageStore.ts';
+import {deleteImage, loadImage, onImageChange} from '../imageStore.ts';
+import {recognizeLines} from '../ocr.ts';
 import ImagePicker from './ImagePicker.tsx';
 
 interface Props {
@@ -53,6 +54,49 @@ export default function ItemForm({store, editId, onClose}: Props) {
   );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // OCR ("Scan title from cover")
+  const [imageUrl,  setImageUrl]  = useState<string | null>(null);
+  const [scanning,  setScanning]  = useState(false);
+  const [progress,  setProgress]  = useState(0);
+  const [scanLines, setScanLines] = useState<string[]>([]);
+  const [scanMsg,   setScanMsg]   = useState('');
+
+  // Track the attached photo so the Scan button only shows when one exists,
+  // and refresh when the picker saves or removes it.
+  useEffect(() => {
+    let active = true;
+    const refresh = () =>
+      loadImage(itemId)
+        .then((url) => {
+          if (!active) return;
+          setImageUrl(url);
+          setScanLines([]);
+          setScanMsg('');
+        })
+        .catch(() => {});
+    refresh();
+    const unsub = onImageChange((id) => { if (id === itemId) refresh(); });
+    return () => { active = false; unsub(); };
+  }, [itemId]);
+
+  const handleScan = async () => {
+    if (scanning || !imageUrl) return;
+    setScanning(true);
+    setScanMsg('');
+    setScanLines([]);
+    setProgress(0);
+    try {
+      const lines = await recognizeLines(imageUrl, (p) => setProgress(p.progress));
+      if (lines.length === 0) setScanMsg(strings.scanNoText);
+      else setScanLines(lines);
+    } catch (err) {
+      console.error('OCR failed', err);
+      setScanMsg(strings.scanError);
+    } finally {
+      setScanning(false);
+    }
+  };
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((prev) => ({...prev, [key]: value}));
@@ -154,6 +198,38 @@ export default function ItemForm({store, editId, onClose}: Props) {
               autoFocus
             />
             {errors.title && <span className="form-error">{errors.title}</span>}
+
+            {imageUrl && (
+              <button
+                type="button"
+                className="scan-btn"
+                onClick={handleScan}
+                disabled={scanning}
+              >
+                {scanning ? `… ${strings.scanning}` : `📷 ${strings.scanTitle}`}
+              </button>
+            )}
+            {scanning && (
+              <div className="scan-progress" aria-hidden>
+                <div className="scan-progress-bar" style={{width: `${Math.round(progress * 100)}%`}} />
+              </div>
+            )}
+            {scanMsg && <span className="form-error">{scanMsg}</span>}
+            {scanLines.length > 0 && (
+              <div className="scan-lines">
+                <span className="scan-lines-hint">{strings.scanTapLine}</span>
+                {scanLines.map((line, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className="scan-line"
+                    onClick={() => { set('title', line); setScanLines([]); }}
+                  >
+                    {line}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Series and Year */}

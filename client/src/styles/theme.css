@@ -519,6 +519,70 @@ body {
   line-height: 1;
 }
 
+/* ── OCR scan (title from cover) ─────────────────────────── */
+.scan-btn {
+  margin-top: 6px;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 8px 14px;
+  border: 2px solid var(--blue);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--blue);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, color 0.12s;
+}
+.scan-btn:active:not(:disabled) { background: var(--blue); color: var(--white); }
+.scan-btn:disabled { opacity: 0.55; cursor: wait; }
+
+.scan-progress {
+  margin-top: 8px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--grey-mid);
+  overflow: hidden;
+}
+.scan-progress-bar {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+
+.scan-lines {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.scan-lines-hint {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-light);
+}
+.scan-line {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1.5px solid var(--grey-mid);
+  border-radius: var(--radius);
+  background: var(--grey);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  word-break: break-word;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.12s, background 0.12s;
+}
+.scan-line:active { border-color: var(--blue); background: var(--white); }
+
 /* Form actions */
 .form-actions {
   display: flex;
