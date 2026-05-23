@@ -20,7 +20,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'vite --port 5173',
+    command: './node_modules/.bin/vite --port 5173',
     url: 'http://localhost:5173/',
     reuseExistingServer: true,
     timeout: 30_000,

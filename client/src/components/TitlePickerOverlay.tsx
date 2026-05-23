@@ -83,25 +83,6 @@ export default function TitlePickerOverlay({imageUrl, onChoose, onCancel}: Props
 
   return (
     <div className="title-picker">
-      <div className="title-picker-header">
-        <button className="title-picker-cancel" type="button" onClick={onCancel}>
-          {strings.cancel}
-        </button>
-        <span className="title-picker-hint">
-          {scanning
-            ? strings.scanning
-            : composedTitle || strings.scanTapLine}
-        </span>
-        <button
-          className="title-picker-use"
-          type="button"
-          onClick={handleUse}
-          disabled={!composedTitle}
-        >
-          {strings.pickerUse}
-        </button>
-      </div>
-
       <div className="title-picker-body" ref={containerRef}>
         <img
           className="title-picker-img"
@@ -149,6 +130,25 @@ export default function TitlePickerOverlay({imageUrl, onChoose, onCancel}: Props
             />
           );
         })}
+      </div>
+
+      <div className="title-picker-footer">
+        <button className="title-picker-cancel" type="button" onClick={onCancel}>
+          {strings.cancel}
+        </button>
+        <span className="title-picker-hint">
+          {scanning
+            ? strings.scanning
+            : composedTitle || strings.scanTapLine}
+        </span>
+        <button
+          className="title-picker-use"
+          type="button"
+          onClick={handleUse}
+          disabled={!composedTitle}
+        >
+          {strings.pickerUse}
+        </button>
       </div>
     </div>
   );

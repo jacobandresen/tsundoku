@@ -362,11 +362,17 @@ body {
   width: 100%;
   max-width: 640px;
   max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-body {
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  box-shadow: var(--shadow-lg);
-  padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 
 .modal-header {
@@ -594,12 +600,16 @@ body {
   color: var(--grey-text);
 }
 
-/* Form actions */
+/* Form actions — always-visible sticky footer at the bottom of the modal */
 .form-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
-  padding-top: 4px;
+  padding: 12px 20px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  border-top: 2px solid var(--grey-mid);
+  background: var(--white);
+  flex-shrink: 0;
 }
 
 /* Buttons */
@@ -629,13 +639,13 @@ body {
   flex-direction: column;
 }
 
-.title-picker-header {
+.title-picker-footer {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  padding-top: max(10px, env(safe-area-inset-top));
-  background: rgba(0,0,0,0.8);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: rgba(0,0,0,0.85);
   flex-shrink: 0;
 }
 
@@ -682,6 +692,7 @@ body {
   flex: 1;
   position: relative;
   overflow: hidden;
+  padding-top: env(safe-area-inset-top);
 }
 
 .title-picker-img {

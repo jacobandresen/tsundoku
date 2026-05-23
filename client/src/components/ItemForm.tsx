@@ -161,7 +161,8 @@ export default function ItemForm({store, editId, onClose}: Props) {
           <button className="modal-close" onClick={onClose} aria-label={strings.cancel}>✕</button>
         </div>
 
-        <form className="item-form" onSubmit={handleSubmit}>
+        <div className="modal-body">
+        <form id="item-form" className="item-form" onSubmit={handleSubmit}>
           {/* Photo */}
           <div className="form-row">
             <ImagePicker itemId={itemId} />
@@ -339,20 +340,22 @@ export default function ItemForm({store, editId, onClose}: Props) {
             />
           </div>
 
-          <div className="form-actions">
-            {editId && (
-              <button type="button" className="btn btn--danger" onClick={handleDelete}>
-                {strings.delete}
-              </button>
-            )}
-            <button type="button" className="btn btn--ghost" onClick={onClose}>
-              {strings.cancel}
-            </button>
-            <button type="submit" className="btn btn--primary">
-              {editId ? strings.save : strings.addItem}
-            </button>
-          </div>
         </form>
+        </div>
+
+        <div className="form-actions">
+          {editId && (
+            <button type="button" className="btn btn--danger" onClick={handleDelete}>
+              {strings.delete}
+            </button>
+          )}
+          <button type="button" className="btn btn--ghost" onClick={onClose}>
+            {strings.cancel}
+          </button>
+          <button type="submit" form="item-form" className="btn btn--primary">
+            {editId ? strings.save : strings.addItem}
+          </button>
+        </div>
       </div>
     </div>
   );
