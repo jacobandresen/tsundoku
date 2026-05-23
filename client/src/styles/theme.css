@@ -490,15 +490,15 @@ body {
 .image-picker-preview {
   position: relative;
   width: 100%;
-  max-height: 240px;
   border-radius: var(--radius);
   overflow: hidden;
   border: 2px solid var(--grey-mid);
+  background: #000;
 }
 .image-picker-img {
   width: 100%;
-  max-height: 240px;
-  object-fit: cover;
+  max-height: 420px;
+  object-fit: contain;
   display: block;
 }
 .image-picker-remove {
