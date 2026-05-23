@@ -3,6 +3,8 @@
 // service worker for offline use. tesseract.js is dynamically imported so it
 // lands in its own lazy chunk, loaded only on the first scan.
 
+import {preprocessForOcr} from './imagePreprocess.ts';
+
 export type OcrProgress = {status: string; progress: number};
 
 type TesseractWorker = Awaited<ReturnType<typeof import('tesseract.js').createWorker>>;
@@ -56,7 +58,12 @@ export async function recognizeBest(
   progressCb = onProgress ?? null;
   try {
     const worker = await getWorker();
-    const {data} = await worker.recognize(image);
+    // Preprocess data URLs (the stored cover photo). Blobs (e.g. in tests) skip this.
+    const input = typeof image === 'string' ? await preprocessForOcr(image) : image;
+    // PSM 11 = sparse text: find as much text as possible with no assumed layout.
+    // Covers have scattered title / author / publisher text, not document paragraphs.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const {data} = await (worker as any).recognize(input, {}, {tessedit_pageseg_mode: '11'});
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lines: {text: string; confidence: number}[] = (data as any).lines ?? [];
     const candidates = lines
