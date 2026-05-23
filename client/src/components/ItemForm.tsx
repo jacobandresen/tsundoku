@@ -5,7 +5,7 @@ import {getKindVerbs} from '../kindMeta.ts';
 import {ITEMS_TABLE} from '../store.ts';
 import type {AppStore, Item, ItemKind} from '../store.ts';
 import {deleteImage, loadImage, onImageChange} from '../imageStore.ts';
-import {recognizeLines} from '../ocr.ts';
+import {recognizeBest} from '../ocr.ts';
 import ImagePicker from './ImagePicker.tsx';
 
 interface Props {
@@ -56,11 +56,11 @@ export default function ItemForm({store, editId, onClose}: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // OCR state
-  const [imageUrl,  setImageUrl]  = useState<string | null>(null);
-  const [scanning,  setScanning]  = useState(false);
-  const [progress,  setProgress]  = useState(0);
-  const [scanLines, setScanLines] = useState<string[]>([]);
-  const [scanMsg,   setScanMsg]   = useState('');
+  const [imageUrl,    setImageUrl]    = useState<string | null>(null);
+  const [scanning,    setScanning]    = useState(false);
+  const [progress,    setProgress]    = useState(0);
+  const [scanConfidence, setScanConfidence] = useState<number | null>(null);
+  const [scanMsg,     setScanMsg]     = useState('');
 
   // Always-fresh scan function held in a ref so the effect below can call it
   // without stale closure issues (effect deps are [itemId] only).
@@ -69,12 +69,13 @@ export default function ItemForm({store, editId, onClose}: Props) {
     if (scanning) return;
     setScanning(true);
     setScanMsg('');
-    setScanLines([]);
+    setScanConfidence(null);
     setProgress(0);
-    recognizeLines(url, (p) => setProgress(p.progress))
-      .then((lines) => {
-        if (lines.length === 0) setScanMsg(strings.scanNoText);
-        else setScanLines(lines);
+    recognizeBest(url, (p) => setProgress(p.progress))
+      .then((result) => {
+        if (!result || result.confidence < 70) { setScanMsg(strings.scanNoText); return; }
+        set('title', result.text);
+        setScanConfidence(Math.round(result.confidence));
       })
       .catch((err) => {
         console.error('OCR failed', err);
@@ -93,7 +94,7 @@ export default function ItemForm({store, editId, onClose}: Props) {
       loadImage(itemId).then((url) => {
         if (!active) return;
         setImageUrl(url);
-        setScanLines([]);
+        setScanConfidence(null);
         setScanMsg('');
         if (url) scanFnRef.current(url);
       }).catch(() => {});
@@ -198,9 +199,8 @@ export default function ItemForm({store, editId, onClose}: Props) {
               id="f-title"
               className={`form-input ${errors.title ? 'form-input--error' : ''}`}
               value={form.title}
-              onChange={(e) => set('title', e.target.value)}
+              onChange={(e) => { set('title', e.target.value); setScanConfidence(null); }}
               placeholder="e.g. The Blue Lotus"
-              autoFocus
             />
             {errors.title && <span className="form-error">{errors.title}</span>}
 
@@ -220,20 +220,8 @@ export default function ItemForm({store, editId, onClose}: Props) {
               </div>
             )}
             {scanMsg && <span className="form-error">{scanMsg}</span>}
-            {scanLines.length > 0 && (
-              <div className="scan-lines">
-                <span className="scan-lines-hint">{strings.scanTapLine}</span>
-                {scanLines.map((line, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className="scan-line"
-                    onClick={() => { set('title', line); setScanLines([]); }}
-                  >
-                    {line}
-                  </button>
-                ))}
-              </div>
+            {scanConfidence !== null && !scanning && (
+              <span className="scan-confidence">{scanConfidence}%</span>
             )}
           </div>
 

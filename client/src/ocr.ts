@@ -46,15 +46,24 @@ export function parseLines(rawText: string): string[] {
   return out;
 }
 
-export async function recognizeLines(
+export type OcrResult = {text: string; confidence: number};
+
+// Returns the single highest-confidence line, or null if nothing legible was found.
+export async function recognizeBest(
   image: string | Blob,
   onProgress?: (p: OcrProgress) => void,
-): Promise<string[]> {
+): Promise<OcrResult | null> {
   progressCb = onProgress ?? null;
   try {
     const worker = await getWorker();
     const {data} = await worker.recognize(image);
-    return parseLines(data.text);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const lines: {text: string; confidence: number}[] = (data as any).lines ?? [];
+    const candidates = lines
+      .map((l) => ({text: l.text.replace(/\s+/g, ' ').trim(), confidence: l.confidence}))
+      .filter((l) => l.text.length >= 2 && l.confidence > 0);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, l) => l.confidence > best.confidence ? l : best);
   } finally {
     progressCb = null;
   }
