@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {nanoid} from 'nanoid';
 import {useLocale} from '../LocaleContext.tsx';
 import {getKindVerbs} from '../kindMeta.ts';
@@ -55,48 +55,53 @@ export default function ItemForm({store, editId, onClose}: Props) {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // OCR ("Scan title from cover")
+  // OCR state
   const [imageUrl,  setImageUrl]  = useState<string | null>(null);
   const [scanning,  setScanning]  = useState(false);
   const [progress,  setProgress]  = useState(0);
   const [scanLines, setScanLines] = useState<string[]>([]);
   const [scanMsg,   setScanMsg]   = useState('');
 
-  // Track the attached photo so the Scan button only shows when one exists,
-  // and refresh when the picker saves or removes it.
-  useEffect(() => {
-    let active = true;
-    const refresh = () =>
-      loadImage(itemId)
-        .then((url) => {
-          if (!active) return;
-          setImageUrl(url);
-          setScanLines([]);
-          setScanMsg('');
-        })
-        .catch(() => {});
-    refresh();
-    const unsub = onImageChange((id) => { if (id === itemId) refresh(); });
-    return () => { active = false; unsub(); };
-  }, [itemId]);
-
-  const handleScan = async () => {
-    if (scanning || !imageUrl) return;
+  // Always-fresh scan function held in a ref so the effect below can call it
+  // without stale closure issues (effect deps are [itemId] only).
+  const scanFnRef = useRef<(url: string) => void>(() => {});
+  scanFnRef.current = (url: string) => {
+    if (scanning) return;
     setScanning(true);
     setScanMsg('');
     setScanLines([]);
     setProgress(0);
-    try {
-      const lines = await recognizeLines(imageUrl, (p) => setProgress(p.progress));
-      if (lines.length === 0) setScanMsg(strings.scanNoText);
-      else setScanLines(lines);
-    } catch (err) {
-      console.error('OCR failed', err);
-      setScanMsg(strings.scanError);
-    } finally {
-      setScanning(false);
-    }
+    recognizeLines(url, (p) => setProgress(p.progress))
+      .then((lines) => {
+        if (lines.length === 0) setScanMsg(strings.scanNoText);
+        else setScanLines(lines);
+      })
+      .catch((err) => {
+        console.error('OCR failed', err);
+        setScanMsg(strings.scanError);
+      })
+      .finally(() => setScanning(false));
   };
+
+  // Initial load (edit mode): show existing image but don't auto-scan.
+  // onImageChange: user picked a new photo → auto-scan immediately.
+  useEffect(() => {
+    let active = true;
+    loadImage(itemId).then((url) => { if (active) setImageUrl(url); }).catch(() => {});
+    const unsub = onImageChange((id) => {
+      if (id !== itemId) return;
+      loadImage(itemId).then((url) => {
+        if (!active) return;
+        setImageUrl(url);
+        setScanLines([]);
+        setScanMsg('');
+        if (url) scanFnRef.current(url);
+      }).catch(() => {});
+    });
+    return () => { active = false; unsub(); };
+  }, [itemId]);
+
+  const handleScan = () => { if (imageUrl) scanFnRef.current(imageUrl); };
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((prev) => ({...prev, [key]: value}));
@@ -206,7 +211,7 @@ export default function ItemForm({store, editId, onClose}: Props) {
                 onClick={handleScan}
                 disabled={scanning}
               >
-                {scanning ? `… ${strings.scanning}` : `📷 ${strings.scanTitle}`}
+                {scanning ? `… ${strings.scanning}` : `🔄 ${strings.scanRetry}`}
               </button>
             )}
             {scanning && (

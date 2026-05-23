@@ -48,6 +48,7 @@ export interface Strings {
   titleRequired: string;
   yearInvalid: string;
   scanTitle: string;
+  scanRetry: string;
   scanning: string;
   scanTapLine: string;
   scanNoText: string;
@@ -99,6 +100,7 @@ const en: Strings = {
   titleRequired: 'Title is required',
   yearInvalid: 'Enter a valid year',
   scanTitle: 'Scan title from cover',
+  scanRetry: 'Scan again',
   scanning: 'Scanning…',
   scanTapLine: 'Tap a line to use as the title',
   scanNoText: 'No text found — try a clearer photo',
@@ -150,6 +152,7 @@ const da: Strings = {
   titleRequired: 'Titel er påkrævet',
   yearInvalid: 'Angiv et gyldigt år',
   scanTitle: 'Scan titel fra omslag',
+  scanRetry: 'Scan igen',
   scanning: 'Scanner…',
   scanTapLine: 'Tryk på en linje for at bruge som titel',
   scanNoText: 'Ingen tekst fundet — prøv et tydeligere foto',
@@ -201,6 +204,7 @@ const ja: Strings = {
   titleRequired: 'タイトルは必須です',
   yearInvalid: '有効な年を入力してください',
   scanTitle: '表紙からタイトルを読み取る',
+  scanRetry: '再スキャン',
   scanning: 'スキャン中…',
   scanTapLine: 'タイトルにする行をタップ',
   scanNoText: 'テキストが見つかりません — 鮮明な写真でお試しください',
