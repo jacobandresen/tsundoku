@@ -54,6 +54,7 @@ export interface Strings {
   scanNoText: string;
   scanError: string;
   chooseTitle: string;
+  pickerUse: string;
 }
 
 const en: Strings = {
@@ -107,6 +108,7 @@ const en: Strings = {
   scanNoText: 'No text found — try a clearer photo',
   scanError: 'Scan failed — try again',
   chooseTitle: 'Choose title',
+  pickerUse: 'Use',
 };
 
 const da: Strings = {
@@ -160,6 +162,7 @@ const da: Strings = {
   scanNoText: 'Ingen tekst fundet — prøv et tydeligere foto',
   scanError: 'Scanning mislykkedes — prøv igen',
   chooseTitle: 'Vælg titel',
+  pickerUse: 'Brug',
 };
 
 const ja: Strings = {
@@ -213,6 +216,7 @@ const ja: Strings = {
   scanNoText: 'テキストが見つかりません — 鮮明な写真でお試しください',
   scanError: 'スキャンに失敗しました — もう一度お試しください',
   chooseTitle: 'タイトルを選ぶ',
+  pickerUse: '使う',
 };
 
 const TRANSLATIONS: Record<Locale, Strings> = {en, da, ja};

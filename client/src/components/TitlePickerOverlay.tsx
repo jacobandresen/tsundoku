@@ -13,12 +13,16 @@ type RenderBox = {offsetX: number; offsetY: number; width: number; height: numbe
 
 export default function TitlePickerOverlay({imageUrl, onChoose, onCancel}: Props) {
   const {strings} = useLocale();
-  const [lines, setLines]       = useState<OcrLine[]>([]);
-  const [scanning, setScanning] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const [error, setError]       = useState('');
+  const [lines, setLines]           = useState<OcrLine[]>([]);
+  const [scanning, setScanning]     = useState(true);
+  const [progress, setProgress]     = useState(0);
+  const [error, setError]           = useState('');
+  // Ordered indices of selected lines — preserves tap order for concatenation.
+  const [selected, setSelected]     = useState<number[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [renderBox, setRenderBox] = useState<RenderBox>({offsetX: 0, offsetY: 0, width: 0, height: 0});
+  const [renderBox, setRenderBox]   = useState<RenderBox>({offsetX: 0, offsetY: 0, width: 0, height: 0});
+
+  const composedTitle = selected.map((i) => lines[i].text).join(' ');
 
   // Run OCR once on mount.
   useEffect(() => {
@@ -54,10 +58,8 @@ export default function TitlePickerOverlay({imageUrl, onChoose, onCancel}: Props
       const boxAspect = cw / ch;
       let rw: number, rh: number, ox: number, oy: number;
       if (imgAspect > boxAspect) {
-        // image wider than container → constrained by width, letterbox top/bottom
         rw = cw; rh = cw / imgAspect; ox = 0; oy = (ch - rh) / 2;
       } else {
-        // image taller than container → constrained by height, letterbox left/right
         rh = ch; rw = ch * imgAspect; ox = (cw - rw) / 2; oy = 0;
       }
       setRenderBox({offsetX: ox, offsetY: oy, width: rw, height: rh});
@@ -69,6 +71,16 @@ export default function TitlePickerOverlay({imageUrl, onChoose, onCancel}: Props
     return () => ro.disconnect();
   }, [lines]);
 
+  const toggleLine = (i: number) => {
+    setSelected((prev) =>
+      prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i],
+    );
+  };
+
+  const handleUse = () => {
+    if (composedTitle) onChoose(composedTitle);
+  };
+
   return (
     <div className="title-picker">
       <div className="title-picker-header">
@@ -76,8 +88,18 @@ export default function TitlePickerOverlay({imageUrl, onChoose, onCancel}: Props
           {strings.cancel}
         </button>
         <span className="title-picker-hint">
-          {scanning ? strings.scanning : (lines.length > 0 ? strings.scanTapLine : '')}
+          {scanning
+            ? strings.scanning
+            : composedTitle || strings.scanTapLine}
         </span>
+        <button
+          className="title-picker-use"
+          type="button"
+          onClick={handleUse}
+          disabled={!composedTitle}
+        >
+          {strings.pickerUse}
+        </button>
       </div>
 
       <div className="title-picker-body" ref={containerRef}>
@@ -111,14 +133,18 @@ export default function TitlePickerOverlay({imageUrl, onChoose, onCancel}: Props
           const top    = renderBox.offsetY + (bbox.y0 / imageHeight) * renderBox.height;
           const width  = ((bbox.x1 - bbox.x0) / imageWidth)  * renderBox.width;
           const height = ((bbox.y1 - bbox.y0) / imageHeight) * renderBox.height;
+          const order  = selected.indexOf(i);
+          const isSel  = order !== -1;
           return (
             <button
               key={i}
               type="button"
-              className="title-picker-region"
+              className={`title-picker-region${isSel ? ' title-picker-region--selected' : ''}`}
               style={{left, top, width, height}}
-              onClick={() => onChoose(line.text)}
+              data-order={isSel ? String(order + 1) : undefined}
+              onClick={() => toggleLine(i)}
               aria-label={line.text}
+              aria-pressed={isSel}
               title={line.text}
             />
           );
