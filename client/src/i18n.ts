@@ -53,6 +53,7 @@ export interface Strings {
   scanTapLine: string;
   scanNoText: string;
   scanError: string;
+  chooseTitle: string;
 }
 
 const en: Strings = {
@@ -102,9 +103,10 @@ const en: Strings = {
   scanTitle: 'Scan title from cover',
   scanRetry: 'Scan again',
   scanning: 'Scanning…',
-  scanTapLine: 'Tap a line to use as the title',
+  scanTapLine: 'Tap a region to choose the title',
   scanNoText: 'No text found — try a clearer photo',
   scanError: 'Scan failed — try again',
+  chooseTitle: 'Choose title',
 };
 
 const da: Strings = {
@@ -154,9 +156,10 @@ const da: Strings = {
   scanTitle: 'Scan titel fra omslag',
   scanRetry: 'Scan igen',
   scanning: 'Scanner…',
-  scanTapLine: 'Tryk på en linje for at bruge som titel',
+  scanTapLine: 'Tryk på et område for at vælge titel',
   scanNoText: 'Ingen tekst fundet — prøv et tydeligere foto',
   scanError: 'Scanning mislykkedes — prøv igen',
+  chooseTitle: 'Vælg titel',
 };
 
 const ja: Strings = {
@@ -206,9 +209,10 @@ const ja: Strings = {
   scanTitle: '表紙からタイトルを読み取る',
   scanRetry: '再スキャン',
   scanning: 'スキャン中…',
-  scanTapLine: 'タイトルにする行をタップ',
+  scanTapLine: '領域をタップしてタイトルを選ぶ',
   scanNoText: 'テキストが見つかりません — 鮮明な写真でお試しください',
   scanError: 'スキャンに失敗しました — もう一度お試しください',
+  chooseTitle: 'タイトルを選ぶ',
 };
 
 const TRANSLATIONS: Record<Locale, Strings> = {en, da, ja};

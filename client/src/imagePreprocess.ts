@@ -1,16 +1,24 @@
 // Canvas-based image preprocessing to improve OCR accuracy on cover photos.
 // Pipeline: upscale → grayscale → percentile contrast stretch → sharpen.
-// Returns a PNG data URL, or the original if anything fails.
+// Returns {dataUrl, width, height} of the preprocessed image (same aspect ratio
+// as original). On failure, returns the original image with its natural dimensions.
 
-export async function preprocessForOcr(dataUrl: string): Promise<string> {
+export type PreprocessResult = {dataUrl: string; width: number; height: number};
+
+export async function preprocessForOcr(dataUrl: string): Promise<PreprocessResult> {
   try {
     return await _run(dataUrl);
   } catch {
-    return dataUrl;
+    try {
+      const img = await decode(dataUrl);
+      return {dataUrl, width: img.naturalWidth, height: img.naturalHeight};
+    } catch {
+      return {dataUrl, width: 0, height: 0};
+    }
   }
 }
 
-async function _run(dataUrl: string): Promise<string> {
+async function _run(dataUrl: string): Promise<PreprocessResult> {
   const img = await decode(dataUrl);
 
   // Scale up to TARGET_DIM on the longest side. Stored images are compressed to
@@ -77,7 +85,7 @@ async function _run(dataUrl: string): Promise<string> {
   }
   ctx.putImageData(frame, 0, 0);
 
-  return canvas.toDataURL('image/png');
+  return {dataUrl: canvas.toDataURL('image/png'), width: w, height: h};
 }
 
 function decode(src: string): Promise<HTMLImageElement> {

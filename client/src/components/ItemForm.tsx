@@ -7,6 +7,7 @@ import type {AppStore, Item, ItemKind} from '../store.ts';
 import {deleteImage, loadImage, onImageChange} from '../imageStore.ts';
 import {recognizeBest} from '../ocr.ts';
 import ImagePicker from './ImagePicker.tsx';
+import TitlePickerOverlay from './TitlePickerOverlay.tsx';
 
 interface Props {
   store: AppStore;
@@ -61,6 +62,7 @@ export default function ItemForm({store, editId, onClose}: Props) {
   const [progress,    setProgress]    = useState(0);
   const [scanConfidence, setScanConfidence] = useState<number | null>(null);
   const [scanMsg,     setScanMsg]     = useState('');
+  const [showPicker,  setShowPicker]  = useState(false);
 
   // Always-fresh scan function held in a ref so the effect below can call it
   // without stale closure issues (effect deps are [itemId] only).
@@ -142,6 +144,17 @@ export default function ItemForm({store, editId, onClose}: Props) {
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      {showPicker && imageUrl && (
+        <TitlePickerOverlay
+          imageUrl={imageUrl}
+          onChoose={(title) => {
+            set('title', title);
+            setScanConfidence(null);
+            setShowPicker(false);
+          }}
+          onCancel={() => setShowPicker(false)}
+        />
+      )}
       <div className="modal">
         <div className="modal-header">
           <h2>{editId ? strings.editItem : strings.addItemTitle}</h2>
@@ -205,14 +218,24 @@ export default function ItemForm({store, editId, onClose}: Props) {
             {errors.title && <span className="form-error">{errors.title}</span>}
 
             {imageUrl && (
-              <button
-                type="button"
-                className="scan-btn"
-                onClick={handleScan}
-                disabled={scanning}
-              >
-                {scanning ? `… ${strings.scanning}` : `🔄 ${strings.scanRetry}`}
-              </button>
+              <div className="scan-actions">
+                <button
+                  type="button"
+                  className="scan-btn"
+                  onClick={handleScan}
+                  disabled={scanning}
+                >
+                  {scanning ? `… ${strings.scanning}` : `🔄 ${strings.scanRetry}`}
+                </button>
+                <button
+                  type="button"
+                  className="scan-btn"
+                  onClick={() => setShowPicker(true)}
+                  disabled={scanning}
+                >
+                  {strings.chooseTitle}
+                </button>
+              </div>
             )}
             {scanning && (
               <div className="scan-progress" aria-hidden>
