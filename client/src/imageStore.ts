@@ -1,49 +1,21 @@
-const DB_NAME = 'tsundoku-images';
-const STORE_NAME = 'images';
-const DB_VERSION = 1;
+// Cover images live in the synced store's `covers` table (see store.ts), so they
+// reach the server and other devices like all other data. These keep their old
+// Promise-based signatures so the components that call them don't have to change.
 
-let dbPromise: Promise<IDBDatabase> | null = null;
-
-function getDb(): Promise<IDBDatabase> {
-  if (!dbPromise) {
-    dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  return dbPromise;
-}
+import {store} from './appStore.ts';
+import {COVERS_TABLE} from './store.ts';
 
 export async function saveImage(id: string, dataUrl: string): Promise<void> {
-  const db = await getDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).put(dataUrl, id);
-    tx.oncomplete = () => { notifyImageChange(id); resolve(); };
-    tx.onerror = () => reject(tx.error);
-  });
+  store.setCell(COVERS_TABLE, id, 'data', dataUrl);
 }
 
 export async function loadImage(id: string): Promise<string | null> {
-  const db = await getDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const req = tx.objectStore(STORE_NAME).get(id);
-    req.onsuccess = () => resolve((req.result as string | undefined) ?? null);
-    req.onerror = () => reject(req.error);
-  });
+  const data = store.getCell(COVERS_TABLE, id, 'data');
+  return typeof data === 'string' && data ? data : null;
 }
 
 export async function deleteImage(id: string): Promise<void> {
-  const db = await getDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).delete(id);
-    tx.oncomplete = () => { notifyImageChange(id); resolve(); };
-    tx.onerror = () => reject(tx.error);
-  });
+  store.delRow(COVERS_TABLE, id);
 }
 
 // Compress a File to a JPEG data URL. Resizes to maxPx on the longest side.
@@ -67,15 +39,13 @@ export function compressImage(file: File, maxPx = 900, quality = 0.80): Promise<
   });
 }
 
-// Tiny pub/sub so ItemCard re-renders when an image is saved or deleted.
+// Fires when a cover is added, changed, or removed — whether by a local save or
+// by a change arriving over sync — so ItemCard/ItemForm refresh their preview.
 type Listener = (id: string) => void;
-const listeners = new Set<Listener>();
 
 export function onImageChange(fn: Listener): () => void {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
-
-function notifyImageChange(id: string): void {
-  listeners.forEach((fn) => fn(id));
+  const listenerId = store.addRowListener(COVERS_TABLE, null, (_store, _table, rowId) =>
+    fn(rowId),
+  );
+  return () => store.delListener(listenerId);
 }

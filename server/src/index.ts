@@ -1,5 +1,6 @@
 import express from 'express';
 import {createServer} from 'http';
+import {mkdirSync} from 'fs';
 import {networkInterfaces} from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -16,6 +17,10 @@ const PORT = parseInt(process.env.PORT ?? '3000', 10);
 const DATA_DIR = process.env.DATA_DIR_OVERRIDE
   ? path.resolve(process.env.DATA_DIR_OVERRIDE)
   : path.resolve(__dirname, '../../data');
+
+// The file persister can't create missing parent dirs — make sure it exists,
+// otherwise synced data (items + covers) silently never lands on disk.
+mkdirSync(DATA_DIR, {recursive: true});
 
 // ── Discovery helpers ─────────────────────────────────────────────────────
 
@@ -75,9 +80,15 @@ app.get('/_discover', async (_req, res) => {
     .usb{background:rgba(0,0,0,.2);border-radius:12px;padding:16px 20px;max-width:420px;
          font-size:.88rem;line-height:1.6;text-align:left;}
     .usb h2{font-size:1rem;margin:0 0 8px;}
+    .back{position:fixed;top:max(16px,env(safe-area-inset-top));left:16px;
+          display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+          color:#fff;background:rgba(0,0,0,.2);border:1.5px solid rgba(255,255,255,.4);
+          border-radius:8px;padding:8px 14px;font-size:.9rem;font-weight:700;}
+    .back:active{background:rgba(0,0,0,.35);}
   </style>
 </head>
 <body>
+  <a class="back" href="/">← Back</a>
   <h1>🚀 Tsundoku</h1>
   <p>Scan with your phone (same WiFi or USB)</p>
   <div class="qr">${qrSvg}</div>

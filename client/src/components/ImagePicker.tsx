@@ -3,9 +3,13 @@ import {compressImage, deleteImage, loadImage, saveImage} from '../imageStore.ts
 
 interface Props {
   itemId: string;
+  // Called only when the user deliberately picks a new photo (not when a cover
+  // arrives via sync), so the caller can trigger auto-scan without being fooled
+  // by remote changes.
+  onPick?: (dataUrl: string) => void;
 }
 
-export default function ImagePicker({itemId}: Props) {
+export default function ImagePicker({itemId, onPick}: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,6 +28,7 @@ export default function ImagePicker({itemId}: Props) {
       const compressed = await compressImage(file);
       await saveImage(itemId, compressed);
       setDataUrl(compressed);
+      onPick?.(compressed);
     } catch (err) {
       console.error('Image save failed', err);
     } finally {

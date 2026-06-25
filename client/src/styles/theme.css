@@ -73,6 +73,21 @@ body {
 }
 .locale-select option { background: var(--red); }
 
+.sync-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.4);
+}
+.sync-link:active { background: rgba(255,255,255,0.35); }
+
 .sync-dot {
   font-size: 0.9rem;
   line-height: 1;

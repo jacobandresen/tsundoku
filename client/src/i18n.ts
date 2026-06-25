@@ -55,6 +55,7 @@ export interface Strings {
   scanError: string;
   chooseTitle: string;
   pickerUse: string;
+  connect: string;
 }
 
 const en: Strings = {
@@ -109,6 +110,7 @@ const en: Strings = {
   scanError: 'Scan failed — try again',
   chooseTitle: 'Choose title',
   pickerUse: 'Use',
+  connect: 'Connect a device',
 };
 
 const da: Strings = {
@@ -163,6 +165,7 @@ const da: Strings = {
   scanError: 'Scanning mislykkedes — prøv igen',
   chooseTitle: 'Vælg titel',
   pickerUse: 'Brug',
+  connect: 'Forbind en enhed',
 };
 
 const ja: Strings = {
@@ -217,6 +220,7 @@ const ja: Strings = {
   scanError: 'スキャンに失敗しました — もう一度お試しください',
   chooseTitle: 'タイトルを選ぶ',
   pickerUse: '使う',
+  connect: 'デバイスを接続',
 };
 
 const TRANSLATIONS: Record<Locale, Strings> = {en, da, ja};

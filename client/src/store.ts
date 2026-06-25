@@ -1,6 +1,7 @@
 import {createMergeableStore} from 'tinybase';
 
 export const ITEMS_TABLE = 'items';
+export const COVERS_TABLE = 'covers';
 
 export type ItemKind = 'comic' | 'book' | 'game' | 'dvd';
 
@@ -34,6 +35,12 @@ export function createAppStore() {
       acquiredDate:{type: 'string', default: ''},
       pricePaid:   {type: 'number', default: 0},
       language:    {type: 'string', default: 'English'},
+    },
+    // Cover images, keyed by item id. Kept in its own table (not on the item row)
+    // so a cover write doesn't churn the items list, and the base64 data syncs to
+    // the server / other devices along with everything else in this store.
+    [COVERS_TABLE]: {
+      data: {type: 'string', default: ''}, // compressed JPEG data URL
     },
   });
 

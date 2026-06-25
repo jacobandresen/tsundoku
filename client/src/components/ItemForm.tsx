@@ -86,23 +86,26 @@ export default function ItemForm({store, editId, onClose}: Props) {
       .finally(() => setScanning(false));
   };
 
-  // Initial load (edit mode): show existing image but don't auto-scan.
-  // onImageChange: user picked a new photo → auto-scan immediately.
+  // Keep the preview in sync with the stored cover — including covers that
+  // arrive from another device. This must NOT auto-scan: a remote cover landing
+  // on the item you happen to have open shouldn't overwrite the title you typed.
   useEffect(() => {
     let active = true;
     loadImage(itemId).then((url) => { if (active) setImageUrl(url); }).catch(() => {});
     const unsub = onImageChange((id) => {
       if (id !== itemId) return;
-      loadImage(itemId).then((url) => {
-        if (!active) return;
-        setImageUrl(url);
-        setScanConfidence(null);
-        setScanMsg('');
-        if (url) scanFnRef.current(url);
-      }).catch(() => {});
+      loadImage(itemId).then((url) => { if (active) setImageUrl(url); }).catch(() => {});
     });
     return () => { active = false; unsub(); };
   }, [itemId]);
+
+  // A deliberate photo pick (not a sync) is the only thing that auto-scans.
+  const handlePick = (url: string) => {
+    setImageUrl(url);
+    setScanConfidence(null);
+    setScanMsg('');
+    scanFnRef.current(url);
+  };
 
   const handleScan = () => { if (imageUrl) scanFnRef.current(imageUrl); };
 
@@ -165,7 +168,7 @@ export default function ItemForm({store, editId, onClose}: Props) {
         <form id="item-form" className="item-form" onSubmit={handleSubmit}>
           {/* Photo */}
           <div className="form-row">
-            <ImagePicker itemId={itemId} />
+            <ImagePicker itemId={itemId} onPick={handlePick} />
           </div>
 
           {/* Kind */}

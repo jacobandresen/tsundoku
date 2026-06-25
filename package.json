@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "pnpm --parallel --filter client --filter server dev",
     "build": "pnpm --filter client build",
+    "start": "bash scripts/start.sh",
+    "start:fast": "bash scripts/start.sh --no-build",
     "test": "pnpm --recursive test",
     "test:all": "bash scripts/test-all.sh",
     "test:all:fast": "bash scripts/test-all.sh --no-build"

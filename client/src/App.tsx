@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {Provider, useTable} from 'tinybase/ui-react';
-import {createLocalPersister} from 'tinybase/persisters/persister-browser';
-import {createAppStore, ITEMS_TABLE} from './store.ts';
+import {ITEMS_TABLE} from './store.ts';
+import {store, initPersistence} from './appStore.ts';
 import {startSync} from './sync.ts';
 import type {SyncStatus} from './sync.ts';
 import {useLocale} from './LocaleContext.tsx';
@@ -11,8 +11,6 @@ import StatsBar from './components/StatsBar.tsx';
 import ItemList from './components/ItemList.tsx';
 import type {Filter, KindFilter, SortKey} from './components/ItemList.tsx';
 import ItemForm from './components/ItemForm.tsx';
-
-const store = createAppStore();
 
 const KIND_ICON: Record<string, string> = {
   comic: '📚',
@@ -38,10 +36,7 @@ function AppInner() {
   useEffect(() => {
     let cancelled = false;
     async function init() {
-      const persister = createLocalPersister(store, 'tsundoku-v1');
-      await persister.startAutoLoad();
-      await persister.startAutoSave();
-      if (cancelled) return;
+      // Persistence is already loaded by the App gate below; just sync.
       try {
         const handle = await startSync(store, setSyncStatus);
         if (cancelled) handle.destroy();
@@ -176,9 +171,8 @@ export default function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const persister = createLocalPersister(store, 'tsundoku-v1');
     let active = true;
-    persister.startAutoLoad().then(() => { if (active) setReady(true); });
+    initPersistence().then(() => { if (active) setReady(true); });
     return () => { active = false; };
   }, []);
 

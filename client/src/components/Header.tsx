@@ -26,6 +26,18 @@ export default function Header({syncStatus}: Props) {
       <span className="header-logo" aria-hidden>🚀</span>
       <h1 className="header-title">Tsundoku</h1>
       <div className="header-right">
+        {/* The /_discover QR page only exists on the PC server build (base '/'),
+            not on the static GitHub Pages build. */}
+        {import.meta.env.BASE_URL === '/' && (
+          <a
+            className="sync-link"
+            href="/_discover"
+            title={strings.connect}
+            aria-label={strings.connect}
+          >
+            📡
+          </a>
+        )}
         <select
           className="locale-select"
           value={locale}
